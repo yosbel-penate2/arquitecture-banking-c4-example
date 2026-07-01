@@ -1,0 +1,21 @@
+model {
+  customer = person "Cliente" "Usuario de la banca digital"
+  regulator = person "Regulador" "Autoridad financiera"
+
+  bankingPlatform = softwareSystem "Plataforma Bancaria" "Sistema de servicios financieros digitales" {
+    webApp = container "Aplicación Web" "Angular"
+    mobileApp = container "Aplicación Móvil" "React Native"
+    apiGateway = container "API Gateway" "Envoy"
+  }
+
+  customer -> bankingPlatform.webApp "Inicia sesión y consulta productos"
+  customer -> bankingPlatform.mobileApp "Gestiona operaciones"
+  regulator -> bankingPlatform.apiGateway "Solicita auditoría y cumplimiento"
+}
+
+views {
+  view context of bankingPlatform {
+    include *
+    include -> bankingPlatform
+  }
+}

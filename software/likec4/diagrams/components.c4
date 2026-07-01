@@ -1,0 +1,32 @@
+model {
+    authService = container "Servicio de Autenticación" {
+        loginController = component "LoginController"
+        tokenService = component "TokenService"
+        passwordHasher = component "PasswordHasher"
+    }
+
+    accountService = container "Servicio de Cuentas" {
+        accountController = component "AccountController"
+        balanceService = component "BalanceService"
+        accountRepository = component "AccountRepository"
+    }
+
+    transactionService = container "Servicio de Transacciones" {
+        transactionController = component "TransactionController"
+        validator = component "Validator"
+        persistenceAdapter = component "PersistenceAdapter"
+    }
+
+    authService.loginController -> authService.tokenService "Genera tokens"
+    authService.loginController -> authService.passwordHasher "Protege credenciales"
+    accountService.accountController -> accountService.balanceService "Consulta saldo"
+    accountService.accountController -> accountService.accountRepository "Persistencia"
+    transactionService.transactionController -> transactionService.validator "Valida movimiento"
+    transactionService.transactionController -> transactionService.persistenceAdapter "Guarda transacción"
+}
+
+views {
+  view components of authService {
+    include *
+  }
+}

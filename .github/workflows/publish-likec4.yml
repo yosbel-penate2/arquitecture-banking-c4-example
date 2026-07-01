@@ -1,0 +1,95 @@
+name: Publish LikeC4 diagrams
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install LikeC4 CLI
+        run: npm install -g likec4@1.53.0
+
+      - name: Validate LikeC4 project
+        run: |
+          cd software/likec4
+          likec4 validate --json --no-layout .
+
+      - name: Export LikeC4 diagrams
+        run: |
+          cd software/likec4
+          mkdir -p images
+          likec4 export png -o images .
+
+      - name: Prepare static site
+        run: |
+          mkdir -p site
+          cp -R software/likec4/images site/images
+          cp software/likec4/README.md site/README.md
+          cat > site/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>LikeC4 Diagrams</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; }
+              img { max-width: 100%; border: 1px solid #ddd; margin: 1rem 0; }
+              .card { margin-bottom: 2rem; }
+            </style>
+          </head>
+          <body>
+            <h1>LikeC4 Architecture Diagrams</h1>
+            <p>This page publishes the exported architecture diagrams from the repository.</p>
+            <div class="card">
+              <h2>Context</h2>
+              <img src="images/context.png" alt="Context diagram" />
+            </div>
+            <div class="card">
+              <h2>Containers</h2>
+              <img src="images/containers.png" alt="Containers diagram" />
+            </div>
+            <div class="card">
+              <h2>Components</h2>
+              <img src="images/components.png" alt="Components diagram" />
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,32 @@
+model {
+  customerBank = person "Cliente"
+
+  bankingPlatformService = softwareSystem "Plataforma Bancaria" {
+    webAppBank = container "Aplicación Web" "Angular"
+    mobileAppBank = container "Aplicación Móvil" "React Native"
+    apiGatewayBank = container "API Gateway" "Envoy"
+    authService = container "Servicio de Autenticación" "Node.js"
+    accountService = container "Servicio de Cuentas" "Java"
+    transactionService = container "Servicio de Transacciones" "Java"
+    notificationService = container "Servicio de Notificaciones" ".NET"
+    database = container "Base de Datos" "PostgreSQL"
+  }
+
+  customerBank -> bankingPlatformService.webAppBank "Usa"
+  customerBank -> bankingPlatformService.mobileAppBank "Usa"
+  bankingPlatformService.webAppBank -> bankingPlatformService.apiGatewayBank "Consume APIs"
+  bankingPlatformService.mobileAppBank -> bankingPlatformService.apiGatewayBank "Consume APIs"
+  bankingPlatformService.apiGatewayBank -> bankingPlatformService.authService "Valida accesos"
+  bankingPlatformService.apiGatewayBank -> bankingPlatformService.accountService "Gestiona cuentas"
+  bankingPlatformService.apiGatewayBank -> bankingPlatformService.transactionService "Procesa transferencias"
+  bankingPlatformService.apiGatewayBank -> bankingPlatformService.notificationService "Envía alertas"
+  bankingPlatformService.accountService -> bankingPlatformService.database "Lee y escribe"
+  bankingPlatformService.transactionService -> bankingPlatformService.database "Registra movimientos"
+}
+
+views {
+  view containers of bankingPlatformService {
+    include *
+    include -> bankingPlatformService
+  }
+}
