@@ -40,14 +40,15 @@ jobs:
           output: site
           base: ${{ env.SITE_BASE_PATH }}
 
+      - name: Fix permissions on site
+        run: |
+          mkdir -p site
+          sudo chown -R $(id -u):$(id -g) site || true
+          chmod -R u+rwX site || true
+
       - name: Prepare static site assets
         run: |
           touch site/.nojekyll
-
-      - name: Fix permissions on site
-        run: |
-          sudo chown -R $(id -u):$(id -g) site || true
-          chmod -R u+rwX site || true
 
       - name: Copy documentation
         run: |
