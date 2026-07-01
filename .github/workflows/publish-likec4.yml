@@ -37,6 +37,11 @@ jobs:
           output: site
           base: /
 
+      - name: Fix permissions on site
+        run: |
+          sudo chown -R $(id -u):$(id -g) site || true
+          chmod -R u+rwX site || true
+
       - name: Copy documentation
         run: |
           cp software/likec4/README.md site/README.md
